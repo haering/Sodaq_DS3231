@@ -112,10 +112,59 @@ DateTime::DateTime (uint16_t year, uint8_t month, uint8_t date, uint8_t hour, ui
     wday = wd;
 }
 
+DateTime DateTime::convertToTimeZone(int8_t timezone) {
+	bool summertime = 0;
+	uint32_t curtime = get() + timezone * 3600;
+	if (m >= 4 && m <= 9) // april to september
+	{
+		summertime = true;
+	} else if (m == 3) // march
+	{
+		if (d - wday >= 24) // after or equal last sunday in march
+				{
+			if (wday == 1 || (wday == 7 && (hh + timezone / 24) > 1)) // today last sunday?
+			{
+				if (hh + timezone >= 2) // after 02:00 we have summer time
+				{
+					summertime = true;
+				} else {
+					summertime = false;
+				}
+			} else {
+				summertime = true;
+			}
+		}
+	} else if (m == 10) // it's october
+	{
+		summertime = true;
+
+		if (d - wday >= 24) // it's after or equal last sunday in october...
+		{
+			if (wday == 1 || (wday == 7 && (hh + timezone / 24) > 1)) // today last sunday?
+			{
+				if (hh + timezone >= 2) // after 02:00 we have winter time
+				{
+					summertime = false;
+				} else {
+					summertime = true;
+				}
+			} else {
+				summertime = false;
+			}
+		}
+	}
+
+	if (summertime) {
+		curtime += 3600;                           // add one hour more for MESZ
+	}
+
+	return DateTime(curtime);
+}
+
 // A convenient constructor for using "the compiler's time":
 //   DateTime now (__DATE__, __TIME__);
 // NOTE: using PSTR would further reduce the RAM footprint
-DateTime::DateTime (const char* date, const char* time) {
+DateTime::DateTime (const char* date, const char* time, const uint8_t wDay) {
     // sample input: date = "Dec 26 2009", time = "12:34:56"
     yOff = conv2d(date + 9);
     // Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec 
@@ -133,7 +182,7 @@ DateTime::DateTime (const char* date, const char* time) {
     hh = conv2d(time);
     mm = conv2d(time + 3);
     ss = conv2d(time + 6);
-    wday = 0;         // FIXME This is not properly initialized
+    wday = wDay;
 }
 
 uint32_t DateTime::get() const {

@@ -23,7 +23,7 @@ public:
     DateTime (long t =0);
     DateTime (uint16_t year, uint8_t month, uint8_t date,
               uint8_t hour, uint8_t min, uint8_t sec, uint8_t wday);
-    DateTime (const char* date, const char* time);
+    DateTime (const char* date, const char* time, const uint8_t day);
 
     uint8_t second() const      { return ss; }
     uint8_t minute() const      { return mm; } 
@@ -33,7 +33,10 @@ public:
     uint8_t month() const       { return m; }
     uint16_t year() const       { return 2000 + yOff; }		// Notice the 2000 !
 
-    uint8_t dayOfWeek() const   { return wday;}  /*Su=1 Mo=2 Tu=3 We=4 Th=5 Fr=6 Sa=7 */
+    uint8_t dayOfWeek() const   { return wday;}
+    /*Su=1 Mo=2 Tu=3 We=4 Th=5 Fr=6 Sa=7 */
+
+    DateTime convertToTimeZone(int8_t timezone_Offset);
 
     // 32-bit time as seconds since 1/1/2000
     uint32_t get() const;
